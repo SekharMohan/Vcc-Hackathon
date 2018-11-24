@@ -15,16 +15,20 @@ import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.model.LatLng;
 import com.vcc.hackathon.utils.PermissionUtils;
 
+import butterknife.BindArray;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -47,6 +51,12 @@ public class MainActivity extends AppCompatActivity {
 	Spinner spinnerTask;
 	@BindView(R.id.btnSelf)
 	Button btnSelf;
+	@BindArray(R.array.task)
+	String[] task;
+	@BindArray(R.array.radius)
+	String[] radiusArr;
+	@BindView(R.id.spinner_radius)
+	Spinner spinnerRadius;
 
 	private LatLng mLatLng;
 
@@ -62,11 +72,38 @@ public class MainActivity extends AppCompatActivity {
 
 	private void initViews() {
 		editTextPlaceSearch.setKeyListener(null);
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.task, android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spinnerTask.setAdapter(adapter);
+		bindAdapterToSpinner(spinnerTask, getArrayAdapter(task));
+		bindAdapterToSpinner(spinnerRadius, getArrayAdapter(radiusArr));
 	}
 
+	private void bindAdapterToSpinner(Spinner spinner, ArrayAdapter<CharSequence> adapter) {
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spinner.setAdapter(adapter);
+		spinner.setSelection(adapter.getCount());
+	}
+
+	private ArrayAdapter<CharSequence> getArrayAdapter(String[] arr) {
+		return new ArrayAdapter<CharSequence>(this, android.R.layout.simple_spinner_item, arr) {
+
+			@Override
+			public View getView(int position, View convertView, ViewGroup parent) {
+
+				View v = super.getView(position, convertView, parent);
+				if (position == getCount()) {
+					((TextView) v.findViewById(android.R.id.text1)).setText("");
+					((TextView) v.findViewById(android.R.id.text1)).setHint(getItem(getCount())); //"Hint to be displayed"
+				}
+
+				return v;
+			}
+
+			@Override
+			public int getCount() {
+				return super.getCount() - 1; // you dont display last item. It is used as hint.
+			}
+
+		};
+	}
 
 	private void placePicker() {
 		try {
@@ -151,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
 			return;
 		}
 
-		String content = "tag:VCC\n Message:"+ edtMessage.getText().toString()+"\nLocation url: http://maps.google.com/?q="+mLatLng.latitude+","+mLatLng.longitude;
+		String content = "tag:VCC\n Radius:"+spinnerRadius.getSelectedItem()+"\n Message:" + edtMessage.getText().toString() + "\nLocation url: http://maps.google.com/?q=" + mLatLng.latitude + "," + mLatLng.longitude;
 		sendSms(mobileNumber, content);
 
 	}

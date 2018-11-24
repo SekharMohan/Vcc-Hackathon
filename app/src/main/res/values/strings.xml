@@ -1,4 +1,21 @@
 <resources>
     <string name="app_name">VCC-HACKATHON</string>
-    <string name="title_activity_maps">Map</string>
+
+
+    <string-array name="task">
+        <item>Food</item>
+        <item>Alcohol</item>
+        <item>Medicine</item>
+        <item>Laundry</item>
+        <item>Set Task</item>
+    </string-array>
+
+    <string-array name="radius">
+        <item>500</item>
+        <item>1000</item>
+        <item>1500</item>
+        <item>2500</item>
+        <item>3000</item>
+        <item>Set Radius</item>
+    </string-array>
 </resources>
