@@ -22,6 +22,7 @@ import android.widget.Spinner;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.maps.model.LatLng;
 import com.vcc.hackathon.utils.PermissionUtils;
 
 import butterknife.BindView;
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
 	Spinner spinnerTask;
 	@BindView(R.id.btnSelf)
 	Button btnSelf;
+
+	private LatLng mLatLng;
 
 
 	@Override
@@ -122,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
 				if (resultCode == RESULT_OK) {
 					Place place = PlacePicker.getPlace(this, data);
+					mLatLng = place.getLatLng();
 					if (editTextPlaceSearch.getError() != null) {
 						editTextPlaceSearch.setError(null);
 					}
@@ -147,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 			return;
 		}
 
-		String content = edtMessage.getText().toString();
+		String content = "tag:VCC\n Message:"+ edtMessage.getText().toString()+"\nLocation url: http://maps.google.com/?q="+mLatLng.latitude+","+mLatLng.longitude;
 		sendSms(mobileNumber, content);
 
 	}
@@ -186,9 +190,7 @@ public class MainActivity extends AppCompatActivity {
 		cursor.moveToFirst();
 		int numberColumnIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
 		String number = cursor.getString(numberColumnIndex);
-
 		cursor.close();
-
 		return number;
 	}
 
