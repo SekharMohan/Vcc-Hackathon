@@ -1,4 +1,4 @@
-package com.vcc.hackathon;
+package com.vcc.hackathon.view;
 
 import android.Manifest;
 import android.content.Intent;
@@ -12,9 +12,11 @@ import android.support.annotation.Nullable;
 import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.text.TextUtils;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -22,11 +24,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 import com.google.android.gms.maps.model.LatLng;
+import com.vcc.hackathon.R;
+import com.vcc.hackathon.datamanager.AppDatabase;
+import com.vcc.hackathon.datamanager.DatabaseClient;
+import com.vcc.hackathon.datamanager.GeoRemainderEntity;
 import com.vcc.hackathon.utils.PermissionUtils;
+
+import java.util.concurrent.CompletableFuture;
 
 import butterknife.BindArray;
 import butterknife.BindView;
@@ -38,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 	private static final int REQUEST_LOCATION_CODE = 100;
 	private static final int PLACE_PICKER_REQUEST = 101;
 	private static final int PICK_CONTACT_REQUEST = 102;
-	private static final int SEND_SMS_REQUEST = 103;
+	private static final int PERMISSION_GROUP_REQUEST = 103;
 	@BindView(R.id.btnSend)
 	Button btnSend;
 	@BindView(R.id.edtMessage)
@@ -59,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
 	Spinner spinnerRadius;
 
 	private LatLng mLatLng;
+	private AppDatabase databaseClient;
 
 
 	@Override
@@ -66,8 +76,21 @@ public class MainActivity extends AppCompatActivity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		ButterKnife.bind(this);
-		initViews();
+		ActionBar actionBar = getSupportActionBar();
+		if (actionBar != null) {
+			actionBar.setDisplayHomeAsUpEnabled(true);
+			actionBar.setTitle("Set Remainder");
 
+		}
+		databaseClient = DatabaseClient.getInstance(this).getAppDatabase();
+		initViews();
+		permissionChecK();
+	}
+
+	private void permissionChecK() {
+		if (!PermissionUtils.hasPermissions(this, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS)) {
+			PermissionUtils.requestPermissions(this, PERMISSION_GROUP_REQUEST, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECEIVE_SMS, Manifest.permission.READ_SMS, Manifest.permission.READ_CONTACTS);
+		}
 	}
 
 	private void initViews() {
@@ -149,6 +172,14 @@ public class MainActivity extends AppCompatActivity {
 				}
 				break;
 
+			case PERMISSION_GROUP_REQUEST:
+
+				if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+
+					handleError("Permission Denied!");
+				}
+				break;
+
 		}
 
 	}
@@ -179,17 +210,36 @@ public class MainActivity extends AppCompatActivity {
 
 	}
 
-	private void prepateContent(String mobileNumber) {
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+			case android.R.id.home:
+				// todo: goto back activity from here
+				finish();
+				return true;
+
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	private boolean isValidateForm() {
 		if (TextUtils.isEmpty(editTextPlaceSearch.getText())) {
 			editTextPlaceSearch.setError("Please select the place");
-			return;
+			return false;
 		} else if (TextUtils.isEmpty(edtMessage.getText())) {
 			edtMessage.setError("Describe Message!");
-			return;
+			return false;
 		}
 
-		String content = "tag:VCC\n Radius:"+spinnerRadius.getSelectedItem()+"\n Message:" + edtMessage.getText().toString() + "\nLocation url: http://maps.google.com/?q=" + mLatLng.latitude + "," + mLatLng.longitude;
-		sendSms(mobileNumber, content);
+		return true;
+	}
+
+	private void prepateContent(String mobileNumber) {
+		if (isValidateForm()) {
+			String content = "tag:VCC\n Radius:" + spinnerRadius.getSelectedItem() + "\n Message:" + edtMessage.getText().toString() + "\nLocation url: http://maps.google.com/?q=" + mLatLng.latitude + "," + mLatLng.longitude;
+			sendSms(mobileNumber, content);
+		}
 
 	}
 
@@ -242,6 +292,25 @@ public class MainActivity extends AppCompatActivity {
 
 	@OnClick(R.id.btnSelf)
 	public void onSelfClicked() {
+
+		if (isValidateForm()) {
+			final String msg = edtMessage.getText().toString();
+			final String task = spinnerTask.getSelectedItem().toString();
+			final int radius = Integer.parseInt(spinnerRadius.getSelectedItem().toString());
+			final String url = "http://maps.google.com/?q=" + mLatLng.latitude + "," + mLatLng.longitude;
+			CompletableFuture.runAsync(new Runnable() {
+				@Override
+				public void run() {
+					GeoRemainderEntity entry = new GeoRemainderEntity();
+					entry.setLocationUrl(url);
+					entry.setMessage(msg);
+					entry.setTask(task);
+					entry.setRadius(radius);
+					databaseClient.geoRemainderDao().insert(entry);
+					Toast.makeText(MainActivity.this,"Remainder saved!",Toast.LENGTH_LONG).show();
+				}
+			});
+		}
 
 	}
 }

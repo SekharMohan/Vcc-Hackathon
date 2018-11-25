@@ -26,7 +26,12 @@ public class SmsReceiver extends BroadcastReceiver {
 
 			if (message.contains("tag:VCC")) {
 
-
+				String[] lineArr = message.split("\n");
+				for(String s:lineArr) {
+					String[] keyVal = s.split(":");
+					System.out.println(keyVal[0]+"--->"+keyVal[1]);
+				}
+				System.out.println(message);
 			}
 		}
 
