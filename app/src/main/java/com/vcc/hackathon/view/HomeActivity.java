@@ -37,6 +37,8 @@ public class HomeActivity extends AppCompatActivity {
 		viewModel = ViewModelProviders.of(this).get(HomeViewModel.class);
 		viewModel.initDB(this);
 		remaidarList.setLayoutManager(new LinearLayoutManager(this));
+		ItemOffsetDecoration offsetDecoration = new ItemOffsetDecoration(this,R.dimen.offset);
+		remaidarList.addItemDecoration(offsetDecoration);
 		viewModel.getRemainderList().observe(this, new Observer<List<GeoRemainderEntity>>() {
 			@Override
 			public void onChanged(@Nullable List<GeoRemainderEntity> geoRemainderEntities) {

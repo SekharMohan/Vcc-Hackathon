@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 	@BindView(R.id.btnSend)
 	Button btnSend;
 	@BindView(R.id.edtMessage)
-	TextInputEditText edtMessage;
+	EditText edtMessage;
 	@BindView(R.id.view_parent)
 	ConstraintLayout viewParent;
 	@BindView(R.id.editText_sear_place)
