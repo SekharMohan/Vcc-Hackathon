@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
 
 	private void prepateContent(String mobileNumber) {
 		if (isValidateForm()) {
-			String content = "tag:VCC\n Radius:" + spinnerRadius.getSelectedItem() + "\n Message:" + edtMessage.getText().toString() + "\nLocation url: http://maps.google.com/?q=" + mLatLng.latitude + "," + mLatLng.longitude;
+			String content = "tag:VCC\nRadius:" + spinnerRadius.getSelectedItem().toString() + "\nTask:" + spinnerTask.getSelectedItem().toString() + "\nMessage:" + edtMessage.getText().toString() + "\nLocation url: http://maps.google.com/?q=" + mLatLng.latitude + "," + mLatLng.longitude;
 			sendSms(mobileNumber, content);
 		}
 
