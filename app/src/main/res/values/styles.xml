@@ -8,11 +8,4 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <string-array name="task">
-        <item>Food</item>
-        <item>Alcohol</item>
-        <item>Medicine</item>
-        <item>Laundry</item>
-    </string-array>
-
 </resources>
